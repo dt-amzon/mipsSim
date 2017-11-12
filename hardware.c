@@ -51,7 +51,7 @@ struct Latch exLatch;
 struct Latch memLatch;
 
 bool isBEQ = false;   //Flag to check if BEQ is being executed
-int reg[32];
+int mips_reg[32];
 
 struct Cycle{
   int inst;
@@ -67,11 +67,11 @@ struct Cycle cycle;
 int exIntCycle = 0;
 int memIntCycle = 0;
 
-int  pc=0;
+int  pgm_c=0;
 
 int c,m,n;
 
-enum allOpcodes {add, addi, sub, mult, beq, lw, sw};
+enum allOpcodes {add, addi, sub, mult, beq, lw, sw, haltSimultation};
 
 void IF();
 void id();
@@ -92,32 +92,32 @@ int main(){
   c = 1;
   m = 1;
   n = 1;
-  reg[16] = 4;
-  reg[17] = 7;
+  mips_reg[16] = 4;
+  mips_reg[17] = 7;
   dataMemory[6] = 563;
   idLatch.instruction.opcode = lw;
   idLatch.instruction.rs = 16;
   idLatch.instruction.imm = 8;
   idLatch.instruction.rt = 17;
   idLatch.instruction.rd = 18;
-  idLatch.rs = reg[idLatch.instruction.rs];
-  idLatch.rt = reg[idLatch.instruction.rt];
+  idLatch.rs = mips_reg[idLatch.instruction.rs];
+  idLatch.rt = mips_reg[idLatch.instruction.rt];
   idLatch.opcode = idLatch.instruction.opcode;
   idLatch.immediate = idLatch.instruction.imm;
   idLatch.ready = true;
   exLatch.ready = false;
   memLatch.ready = false;
   exLatch.output = 0;
-  ex();
-  mem();
-  wb();
-  printf("memLatch\n");
-  testprint(memLatch);
-  printf("exLatch\n");
-  testprint(exLatch);
-  printf("memory\n");
-  printf("dataMemory\n");
-  printf("%d\n", reg[17]);
+  // ex();
+  // mem();
+  // wb();
+  // printf("memLatch\n");
+  // testprint(memLatch);
+  // printf("exLatch\n");
+  // testprint(exLatch);
+  // printf("memory\n");
+  // printf("dataMemory\n");
+  // printf("%d\n", reg[17]);
   return 0;
 }
 
@@ -377,7 +377,7 @@ void IF(){
 
 void id(){
 	int hazard = 0;  ///0 = no hazard // 1 = there is a hazard
-	int wrongInstruct = 0; // 0 = nothing wrong
+	int wronginstruct = 0; // 0 = nothing wrong
 
 	if (ifLatch.opcode == haltSimultation && !idLatch.ready){
 		ifLatch.ready = false;
@@ -386,12 +386,12 @@ void id(){
 		}
 	else {
 		if (idLatch.ready){
-			if (ifLatch.instruction.opcode == BEQ) {
+			if (ifLatch.instruction.opcode == beq) {
 				isBEQ = true;
 				}
 				////add, sub, mult instructions in ID_EX_LATCH/////
-			if((idLatch.ready) && (idLatch.instruction.opcode == add || idLatch.instruction.opcode == sub || idLatch.instruction.opcode == mult){
-				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == BEQ){
+			if((idLatch.ready) && (idLatch.instruction.opcode == add || idLatch.instruction.opcode == sub || idLatch.instruction.opcode == mult)){
+				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == beq){
 					if(ifLatch.instruction.rs == idLatch.instruction.rd || ifLatch.instruction.rt == idLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
 						}
@@ -403,8 +403,8 @@ void id(){
 					}
 			}
 				///addi lw in ID_EX_LATCH////
-			if((idLatch.ready) && (idLatch.instruction.opcode == addi || idLatch.instruction.opcode == lw){
-				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == BEQ){
+			if((idLatch.ready) && (idLatch.instruction.opcode == addi || idLatch.instruction.opcode == lw)){
+				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == beq){
 					if(ifLatch.instruction.rs == idLatch.instruction.rd || ifLatch.instruction.rt == idLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
 						}
@@ -416,8 +416,8 @@ void id(){
 					}
 			}
 				////add, sub, mult instructions in EX_MEM_LATCH/////
-			if((memLatch.ready) && (exLatch.instruction == add || exLatch.instruction.opcode == sub || exLatch.instruction.opcode == mult){
-				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == BEQ){
+			if((memLatch.ready) && (exLatch.instruction.opcode == add || exLatch.instruction.opcode == sub || exLatch.instruction.opcode == mult)){
+				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == beq){
 					if(ifLatch.instruction.rs == exLatch.instruction.rd || ifLatch.instruction.rt == exLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
 						}
@@ -431,8 +431,8 @@ void id(){
 
 
 				//////addi lw in EX_MEM_LATCH/////
-			if((memLatch.ready) && (exLatch.instruction.opcode == addi || exLatch.instruction.opcode == lw){
-				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == BEQ){
+			if((memLatch.ready) && (exLatch.instruction.opcode == addi || exLatch.instruction.opcode == lw)){
+				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == beq){
 					if(ifLatch.instruction.rs == idLatch.instruction.rd || ifLatch.instruction.rt == idLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
 						}
@@ -444,8 +444,8 @@ void id(){
 					}
 			}
 			////add, sub, mult instructions in MEM_WB_LATCH/////
-			if((memLatch.ready) && (memLatch.instruction == add || memLatch.instruction.opcode == sub || memLatch.instruction.opcode == mult){
-				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == BEQ){
+			if((memLatch.ready) && (memLatch.instruction.opcode == add || memLatch.instruction.opcode == sub || memLatch.instruction.opcode == mult)){
+				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == beq){
 					if(ifLatch.instruction.rs == memLatch.instruction.rd || ifLatch.instruction.rt == memLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
 						}
@@ -459,8 +459,8 @@ void id(){
 
 
 				//////addi lw in MEM_WB_LATCH/////
-			if((memLatch.ready) && (memLatch.instruction.opcode == addi || memLatch.instruction.opcode == lw){
-				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == BEQ){
+			if((memLatch.ready) && (memLatch.instruction.opcode == addi || memLatch.instruction.opcode == lw)){
+				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == beq){
 					if(ifLatch.instruction.rs == memLatch.instruction.rd || ifLatch.instruction.rt == memLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
 						}
@@ -473,45 +473,37 @@ void id(){
 			}
 			if(hazard == 0 && !idLatch.ready){
 				switch(idLatch.instruction.opcode){     /////sends info to mips reg
-					case add : {
-						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
+					case add :
+						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
+						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
 						break;
-						}
-					case addi : {
-						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
+					case addi :
+						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
+						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
 						break;
-						}
-					case sub : {
-						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
+					case sub :
+						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
+						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
 						break;
-						}
-					case mult : {
-						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
+					case mult :
+						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
+						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
 						break;
-						}
-					case BEQ : {
-						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
+					case beq :
+						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
+						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
 						break;
-						}
-					case sw : {
-						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
+					case sw :
+						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
+						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
 						break;
-						}
-					case lw : {
-						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
+					case lw :
+						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
+						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
 						break;
-						}
-					default : {
+					default :
 						wronginstruct = 1;
 						break;
-						}
 					}
 				}
 			assert(wronginstruct == 0);  ///error if theres a wrong instruction
@@ -530,6 +522,12 @@ void id(){
 
 void ex(){
   int numCycle;
+	if (ifLatch.opcode == haltSimultation && !idLatch.ready){
+		idLatch.ready = false;
+		exLatch.instruction = ifLatch.instruction;
+		exLatch.ready = true;
+		}
+	else {
   if(idLatch.ready){           //has id given out a result?
     if(idLatch.opcode == mult) { numCycle = m; }
     else { numCycle = n; }
@@ -556,8 +554,8 @@ void ex(){
           break;
         case beq:
           if(idLatch.rs == idLatch.rt)
-            pc += idLatch.immediate;
-          assert((pc>=0) && (pc <512));
+            pgm_c += idLatch.immediate;
+          assert((pgm_c>=0) && (pgm_c <512));
           isBEQ = false;
           exLatch.output = 0;
           break;
@@ -572,17 +570,24 @@ void ex(){
         idLatch.ready = false;
         exIntCycle = 0;
       }
+		}
   }
 }
 
 void mem(){
+	if (ifLatch.opcode == haltSimultation && !idLatch.ready){
+		exLatch.ready = false;
+		idLatch.instruction = ifLatch.instruction;
+		memLatch.ready = true;
+		}
+	else {
   if(exLatch.ready){
     if((exLatch.instruction.opcode == lw || exLatch.instruction.opcode == sw) && !memLatch.ready){
       if (memIntCycle < c) memIntCycle++;
       if(memIntCycle == c && !memLatch.ready){
         assert(exLatch.immediate % 4 == 0);
         if(exLatch.instruction.opcode == sw){
-          dataMemory[exLatch.output] = reg[exLatch.instruction.rt];
+          dataMemory[exLatch.output] = mips_reg[exLatch.instruction.rt];
           memLatch.output=0;
         }
         if(exLatch.instruction.opcode == lw){
@@ -608,25 +613,31 @@ void mem(){
 
   }
 }
+}
 
 void wb(){
+	if (memLatch.opcode == haltSimultation && !idLatch.ready){
+		memLatch.ready = false;
+		}
+	else {
   if(memLatch.ready){
     if(memLatch.instruction.opcode == add || memLatch.instruction.opcode == sub  || memLatch.instruction.opcode == mult){
       cycle.wb++;
-      reg[memLatch.instruction.rd] = memLatch.output;
+      mips_reg[memLatch.instruction.rd] = memLatch.output;
     }
     else if(memLatch.instruction.opcode == lw || memLatch.instruction.opcode == addi){
       cycle.wb++;
-      reg[memLatch.instruction.rt] = memLatch.output;
+      mips_reg[memLatch.instruction.rt] = memLatch.output;
     }
     memLatch.ready = false;
   }
 }
+}
 
 void testprint(struct Latch latch){
   printf("opcode = %d\n",latch.instruction.opcode);
-  printf("rs = %d\n",reg[latch.instruction.rs]);
-  printf("rt = %d\n",reg[latch.instruction.rt]);
+  printf("rs = %d\n",mips_reg[latch.instruction.rs]);
+  printf("rt = %d\n",mips_reg[latch.instruction.rt]);
   printf("output = %d\n",latch.output);
   printf("ready = %d\n\n", latch.ready);
 }
