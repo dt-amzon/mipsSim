@@ -120,6 +120,7 @@ int main(int argc, char *argv[]){
 		m=atoi(argv[2]);
 		n=atoi(argv[3]);
 		c=atoi(argv[4]);
+
 		input=fopen(argv[5],"r");
 		output=fopen(argv[6],"w");
 
@@ -144,16 +145,21 @@ int main(int argc, char *argv[]){
 			mips_reg[i]=0;
 		}
 	}
+//	int i;
 
 	//start your code from here
-
 	while(fgets(buffer, MAX, input) != NULL){
+		printf("Marker1\n");
+		for(i = 0; i < strlen(buffer); i++){
+
+			printf("str[%d] = %x\n", i, buffer[i]);
+		}
 
 		//printf("output: \n%s", progScanner(buffer));
 		toParse = progScanner(buffer);
-		printf("what is to be parsed: %s\n", toParse);
 		unparsedArray[k++] = toParse;
 
+		printf("%d\n", k);
 		/* for(int i = 0; i < strlen(toParse); i++){
 
 			printf("character %d: %x %c\n", i, toParse[i], toParse[i]);
@@ -162,9 +168,12 @@ int main(int argc, char *argv[]){
 
 	// printf("unparsed array 1: %s\n", unparsedArray[0]);
 	// printf("unparsed array 2: %s\n", unparsedArray[1]);
+	printf("Marker1\n");
 	for(i = 0; i < k; i++){
+		printf("Marker2\n");
 		instructionMemory[i] = parser(unparsedArray[i]);
 	}
+	printf("Marker3\n");
 	fclose(input);
 
 	ifLatch.ready = false;
@@ -209,6 +218,7 @@ int main(int argc, char *argv[]){
 	//close input and output files at the end of the simulation
 	fclose(input);
 	fclose(output);
+	free(buffer);
 	return 0;
 }
 
@@ -226,6 +236,7 @@ char *progScanner(char *input){
 	//while(fgets(input, MAX, fptr) != NULL){
 
 		char *dup = strdup(input);
+		printf("%s\n", dup);
 		for(i = 0; i < strlen(input); i++){
 
 			if(dup[i] == '('){
@@ -271,12 +282,14 @@ char *progScanner(char *input){
 struct Instruction parser(char *string){
 
 	char regDelimiter[] = "\r $";
-	char* str = malloc(sizeof(char) * MAX);
+	char* str = malloc(sizeof(char*) * MAX);
 	str = strtok(string, regDelimiter);
 	struct Instruction testInst;
 
+
 	//Designate components of struct
 	testInst.opcode = opcodeConverter(str);
+
 
 	if(testInst.opcode == 5 || testInst.opcode == 6){
 		testInst.rd = regNumConverter(strtok(NULL, regDelimiter));
@@ -296,6 +309,12 @@ struct Instruction parser(char *string){
 		return testInst;
 	}
 
+	else if(testInst.opcode == 1){
+		testInst.rs = regNumConverter(strtok(NULL, regDelimiter));
+		testInst.rt = regNumConverter(strtok(NULL, regDelimiter));
+		testInst.imm = regNumConverter(strtok(NULL, regDelimiter));
+	}
+
 	else{
 		testInst.rd = regNumConverter(strtok(NULL, regDelimiter));
 		testInst.rs = regNumConverter(strtok(NULL, regDelimiter));
@@ -313,6 +332,9 @@ struct Instruction parser(char *string){
 
 int opcodeConverter(char* instOpcode){
 	int val;
+	printf("q%sq\n", instOpcode);
+
+
 	if(strcmp(instOpcode, "add") == 0){
 		val = 0;
 	}

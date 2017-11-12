@@ -1,0 +1,2 @@
+addi $zero $s1 5
+haltSimulation
