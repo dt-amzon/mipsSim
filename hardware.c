@@ -356,20 +356,20 @@ int regNumConverter(char* regName){
 }
 
 void IF(){
-	if (instructionMemory[pc].opcode == haltSimulation) {	///stopcodes IF
+	if (instructionMemory[pgm_c].opcode == haltSimultation) {	///stopcodes IF
 		if (!ifLatch.ready){
-			ifLatch.instruction = instructionMemory[pc];
+			ifLatch.instruction = instructionMemory[pgm_c];
 			ifLatch.ready = true;
 			}
 		}
 	else {
 		if (!ifLatch.ready) {  //sends info to ID
 
-			ifLatch.instruction = instructionMemory[pc];
+			ifLatch.instruction = instructionMemory[pgm_c];
 			ifLatch.rs = 0;
 			ifLatch.rt = 0;
 			ifLatch.ready = true;	//can move on
-			pc++;
+			pgm_c++;
 			}
 			start = isBEQ;
 		}
@@ -379,7 +379,7 @@ void id(){
 	int hazard = 0;  ///0 = no hazard // 1 = there is a hazard
 	int wrongInstruct = 0; // 0 = nothing wrong
 
-	if (ifLatch.opcode == haltSimulation && !idLatch.ready){
+	if (ifLatch.opcode == haltSimultation && !idLatch.ready){
 		ifLatch.ready = false;
 		idLatch.instruction = ifLatch.instruction;
 		idLatch.ready = true;
@@ -389,40 +389,40 @@ void id(){
 			if (ifLatch.instruction.opcode == BEQ) {
 				isBEQ = true;
 				}
-				////ADD, SUB, MULT instructions in ID_EX_LATCH/////
-			if((idLatch.ready) && (idLatch.instruction.opcode == ADD || idLatch.instruction.opcode == SUB || idLatch.instruction.opcode == MUL){
-				if (ifLatch.instruction.opcode == ADD || ifLatch.instruction.opcode == SUB || ifLatch.instruction.opcode == MUL || ifLatch.instruction.opcode == SW || ifLatch.instruction.opcode == BEQ){
+				////add, sub, mult instructions in ID_EX_LATCH/////
+			if((idLatch.ready) && (idLatch.instruction.opcode == add || idLatch.instruction.opcode == sub || idLatch.instruction.opcode == mult){
+				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == BEQ){
 					if(ifLatch.instruction.rs == idLatch.instruction.rd || ifLatch.instruction.rt == idLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
 						}
 					}
-				else if(ifLatch.instruction.opcode == ADDI || ifLatch.instruction.opcode == LW){
+				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
 					if(ifLatch.instruction.rs == idLatch.instruction.rd){
 						hazard = 1;
 						}
 					}
 			}
-				///ADDI LW in ID_EX_LATCH////
-			if((idLatch.ready) && (idLatch.instruction.opcode == ADDI || idLatch.instruction.opcode == LW){
-				if (ifLatch.instruction.opcode == ADD || ifLatch.instruction.opcode == SUB || ifLatch.instruction.opcode == MUL || ifLatch.instruction.opcode == SW || ifLatch.instruction.opcode == BEQ){
+				///addi lw in ID_EX_LATCH////
+			if((idLatch.ready) && (idLatch.instruction.opcode == addi || idLatch.instruction.opcode == lw){
+				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == BEQ){
 					if(ifLatch.instruction.rs == idLatch.instruction.rd || ifLatch.instruction.rt == idLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
 						}
 					}
-				else if(ifLatch.instruction.opcode == ADDI || ifLatch.instruction.opcode == LW){
+				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
 					if(ifLatch.instruction.rs == idLatch.instruction.rd){
 						hazard = 1;
 						}
 					}
 			}
-				////ADD, SUB, MULT instructions in EX_MEM_LATCH/////
-			if((memLatch.ready) && (exLatch.instruction == ADD || exLatch.instruction.opcode == SUB || exLatch.instruction.opcode == MUL){
-				if (ifLatch.instruction.opcode == ADD || ifLatch.instruction.opcode == SUB || ifLatch.instruction.opcode == MUL || ifLatch.instruction.opcode == SW || ifLatch.instruction.opcode == BEQ){
+				////add, sub, mult instructions in EX_MEM_LATCH/////
+			if((memLatch.ready) && (exLatch.instruction == add || exLatch.instruction.opcode == sub || exLatch.instruction.opcode == mult){
+				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == BEQ){
 					if(ifLatch.instruction.rs == exLatch.instruction.rd || ifLatch.instruction.rt == exLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
 						}
 					}
-				else if(ifLatch.instruction.opcode == ADDI || ifLatch.instruction.opcode == LW){
+				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
 					if(ifLatch.instruction.rs == exLatch.instruction.rd){
 						hazard = 1;
 						}
@@ -430,27 +430,27 @@ void id(){
 			}
 
 
-				//////ADDI LW in EX_MEM_LATCH/////
-			if((memLatch.ready) && (exLatch.instruction.opcode == ADDI || exLatch.instruction.opcode == LW){
-				if (ifLatch.instruction.opcode == ADD || ifLatch.instruction.opcode == SUB || ifLatch.instruction.opcode == MUL || ifLatch.instruction.opcode == SW || ifLatch.instruction.opcode == BEQ){
+				//////addi lw in EX_MEM_LATCH/////
+			if((memLatch.ready) && (exLatch.instruction.opcode == addi || exLatch.instruction.opcode == lw){
+				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == BEQ){
 					if(ifLatch.instruction.rs == idLatch.instruction.rd || ifLatch.instruction.rt == idLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
 						}
 					}
-				else if(ifLatch.instruction.opcode == ADDI || ifLatch.instruction.opcode == LW){
+				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
 					if(ifLatch.instruction.rs == exLatch.instruction.rd){
 						hazard = 1;
 						}
 					}
 			}
-			////ADD, SUB, MULT instructions in MEM_WB_LATCH/////
-			if((memLatch.ready) && (memLatch.instruction == ADD || memLatch.instruction.opcode == SUB || memLatch.instruction.opcode == MUL){
-				if (ifLatch.instruction.opcode == ADD || ifLatch.instruction.opcode == SUB || ifLatch.instruction.opcode == MUL || ifLatch.instruction.opcode == SW || ifLatch.instruction.opcode == BEQ){
+			////add, sub, mult instructions in MEM_WB_LATCH/////
+			if((memLatch.ready) && (memLatch.instruction == add || memLatch.instruction.opcode == sub || memLatch.instruction.opcode == mult){
+				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == BEQ){
 					if(ifLatch.instruction.rs == memLatch.instruction.rd || ifLatch.instruction.rt == memLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
 						}
 					}
-				else if(ifLatch.instruction.opcode == ADDI || ifLatch.instruction.opcode == LW){
+				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
 					if(ifLatch.instruction.rs == memLatch.instruction.rd){
 						hazard = 1;
 						}
@@ -458,54 +458,54 @@ void id(){
 			}
 
 
-				//////ADDI LW in MEM_WB_LATCH/////
-			if((memLatch.ready) && (memLatch.instruction.opcode == ADDI || memLatch.instruction.opcode == LW){
-				if (ifLatch.instruction.opcode == ADD || ifLatch.instruction.opcode == SUB || ifLatch.instruction.opcode == MUL || ifLatch.instruction.opcode == SW || ifLatch.instruction.opcode == BEQ){
+				//////addi lw in MEM_WB_LATCH/////
+			if((memLatch.ready) && (memLatch.instruction.opcode == addi || memLatch.instruction.opcode == lw){
+				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == BEQ){
 					if(ifLatch.instruction.rs == memLatch.instruction.rd || ifLatch.instruction.rt == memLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
 						}
 					}
-				else if(ifLatch.instruction.opcode == ADDI || ifLatch.instruction.opcode == LW){
+				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
 					if(ifLatch.instruction.rs == memLatch.instruction.rd){
 						hazard = 1;
 						}
 					}
 			}
 			if(hazard == 0 && !idLatch.ready){
-				switch(idLatch.instruction.opcode){
-					case ADD : {
-						idLatch.instruction.rs = mips_register(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_register(ifLatch.instruction.rt);
+				switch(idLatch.instruction.opcode){     /////sends info to mips reg
+					case add : {
+						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
+						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
 						break;
 						}
-					case ADDI : {
-						idLatch.instruction.rs = mips_register(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_register(ifLatch.instruction.rt);
+					case addi : {
+						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
+						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
 						break;
 						}
-					case SUB : {
-						idLatch.instruction.rs = mips_register(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_register(ifLatch.instruction.rt);
+					case sub : {
+						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
+						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
 						break;
 						}
-					case MUL : {
-						idLatch.instruction.rs = mips_register(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_register(ifLatch.instruction.rt);
+					case mult : {
+						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
+						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
 						break;
 						}
 					case BEQ : {
-						idLatch.instruction.rs = mips_register(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_register(ifLatch.instruction.rt);
+						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
+						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
 						break;
 						}
-					case SW : {
-						idLatch.instruction.rs = mips_register(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_register(ifLatch.instruction.rt);
+					case sw : {
+						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
+						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
 						break;
 						}
-					case LW : {
-						idLatch.instruction.rs = mips_register(ifLatch.instruction.rs);
-						idLatch.instruction.rt = mips_register(ifLatch.instruction.rt);
+					case lw : {
+						idLatch.instruction.rs = mips_reg(ifLatch.instruction.rs);
+						idLatch.instruction.rt = mips_reg(ifLatch.instruction.rt);
 						break;
 						}
 					default : {
@@ -514,10 +514,10 @@ void id(){
 						}
 					}
 				}
-			assert(wronginstruct == 0);
+			assert(wronginstruct == 0);  ///error if theres a wrong instruction
 			if(hazard == 0 && !idLatch.ready){
 
-				idLatch.instruction = ifLatch.instruction;
+				idLatch.instruction = ifLatch.instruction;   /////sends info
 				idLatch.ready = true;
 				ifLatch.ready = false;
 						}
