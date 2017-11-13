@@ -1,0 +1,4 @@
+for(i = 0; i < strlen(buffer); i++){
+
+		printf("str[%d] = %x\n", i, buffer[i]);
+	}

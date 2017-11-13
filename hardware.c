@@ -33,17 +33,18 @@ struct Instruction {
 int regNumConverter(char*);
 int opcodeConverter(char*);
 char *progScanner(char*);
+char *my_strcat(char *, const char *);
 struct Instruction parser(char *);
 
 
 struct Latch {
-  struct Instruction instruction;
-  int opcode;
-  int rs;
-  int rt;
-  int immediate;
-  int output;
-  bool ready;
+	struct Instruction instruction;
+	int opcode;
+	int rs;
+	int rt;
+	int immediate;
+	int output;
+	bool ready;
 };
 
 struct Instruction instructionMemory[512];
@@ -58,12 +59,12 @@ bool isBEQ = false;   //Flag to check if BEQ is being executed
 int mips_reg[32];
 
 struct Cycle{
-  int inst;
-  int id;
-  int ex;
-  int mem;
-  int wb;
-  int total;
+	int inst;
+	int id;
+	int ex;
+	int mem;
+	int wb;
+	int total;
 };
 
 struct Cycle cycle;
@@ -145,48 +146,38 @@ int main(int argc, char *argv[]){
 			mips_reg[i]=0;
 		}
 	}
-//	int i;
+	//	int i;
 
 	//start your code from here
 	while(fgets(buffer, MAX, input) != NULL){
-		printf("Marker1\n");
-		for(i = 0; i < strlen(buffer); i++){
-
-			printf("str[%d] = %x\n", i, buffer[i]);
-		}
 
 		//printf("output: \n%s", progScanner(buffer));
 		toParse = progScanner(buffer);
+		printf("%s\n", toParse);
 		unparsedArray[k++] = toParse;
-
-		printf("%d\n", k);
 		/* for(int i = 0; i < strlen(toParse); i++){
 
-			printf("character %d: %x %c\n", i, toParse[i], toParse[i]);
-		} */
-	}
+		printf("character %d: %x %c\n", i, toParse[i], toParse[i]);
+	} */
+}
 
-	// printf("unparsed array 1: %s\n", unparsedArray[0]);
-	// printf("unparsed array 2: %s\n", unparsedArray[1]);
-	printf("Marker1\n");
-	for(i = 0; i < k; i++){
-		printf("Marker2\n");
-		instructionMemory[i] = parser(unparsedArray[i]);
-	}
-	printf("Marker3\n");
-	fclose(input);
+// printf("unparsed array 1: %s\n", unparsedArray[0]);
+// printf("unparsed array 2: %s\n", unparsedArray[1]);
+for(i = 0; i < k; i++){
+	instructionMemory[i] = parser(unparsedArray[i]);
+}
 
-	ifLatch.ready = false;
-	idLatch.ready = false;
-	exLatch.ready = false;
-	memLatch.ready = false;
+ifLatch.ready = false;
+idLatch.ready = false;
+exLatch.ready = false;
+memLatch.ready = false;
 
-	while(memLatch.opcode != haltSimulation){
-			wb();
-	    mem();
-	    ex();
-	    id();
-	    IF();
+while(memLatch.opcode != haltSimulation){
+	wb();
+	mem();
+	ex();
+	id();
+	IF();
 
 	printf("cycle: %ld ",sim_cycle);
 	if(sim_mode==1){
@@ -195,31 +186,30 @@ int main(int argc, char *argv[]){
 		}
 	}
 	printf("%d\n",pgm_c);
-	pgm_c+=4;
 	sim_cycle+=1;
 	test_counter++;
 	printf("press ENTER to continue\n");
 	while(getchar() != '\n');
-	}
-	if(sim_mode==0){
-		fprintf(output,"program name: %s\n",argv[5]);
-		// fprintf(output,"stage utilization: %f  %f  %f  %f  %f \n",
-    //                          ifUtil, idUtil, exUtil, memUtil, wbUtil);
-                     // add the (double) stage_counter/sim_cycle for each
-                     // stage following sequence IF ID EX MEM WB
+}
+if(sim_mode==0){
+	fprintf(output,"program name: %s\n",argv[5]);
+	// fprintf(output,"stage utilization: %f  %f  %f  %f  %f \n",
+	//                          ifUtil, idUtil, exUtil, memUtil, wbUtil);
+	// add the (double) stage_counter/sim_cycle for each
+	// stage following sequence IF ID EX MEM WB
 
-		fprintf(output,"register values ");
-		for (i=1;i<REG_NUM;i++){
-			fprintf(output,"%d  ",mips_reg[i]);
-		}
-		fprintf(output,"%d\n",pgm_c);
-
+	fprintf(output,"register values ");
+	for (i=1;i<REG_NUM;i++){
+		fprintf(output,"%d  ",mips_reg[i]);
 	}
-	//close input and output files at the end of the simulation
-	fclose(input);
-	fclose(output);
-	free(buffer);
-	return 0;
+	fprintf(output,"%d\n",pgm_c);
+
+}
+//close input and output files at the end of the simulation
+fclose(input);
+fclose(output);
+free(buffer);
+return 0;
 }
 
 char *progScanner(char *input){
@@ -235,43 +225,46 @@ char *progScanner(char *input){
 	//fptr = input;
 	//while(fgets(input, MAX, fptr) != NULL){
 
-		char *dup = strdup(input);
-		printf("%s\n", dup);
-		for(i = 0; i < strlen(input); i++){
+	char *dup = strdup(input);
+	//printf("%s\n", dup);
 
-			if(dup[i] == '('){
-				parCount++;
-			}
-			if(dup[i] == ')'){
-				parCount--;
-			}
+	for(i = 0; i < strlen(input); i++){
+
+		if(dup[i] == '('){
+			parCount++;
+		}
+		if(dup[i] == ')'){
+			parCount--;
+		}
+	}
+
+
+	if(parCount != 0){
+		printf("Parentheses error. Program will die");
+		exit(0);
+	}
+	//Delimiting
+	for(i = 0; i < 4; i++){
+
+		if(i == 0){
+			token[i] = strtok(input, delimiters);
+		}
+		else{
+			token[i] = strtok(NULL, delimiters);
+		}
+		if(i < 3){
+			my_strcat(temp, token[i]);
+			my_strcat(temp, " ");
+		}
+		else{
+			my_strcat(temp, token[i]);
 		}
 
-		if(parCount != 0){
-			printf("Parentheses error. Program will die");
-			exit(0);
-		}
+	}
 
-		//Delimiting
-		for(i = 0; i < 4; i++){
-			if(i == 0){
-				token[i] = strtok(input, delimiters);
-			}
-			else{
-				token[i] = strtok(NULL, delimiters);
-			}
-
-			if(i < 3){
-				strcat(temp, token[i]);
-				strcat(temp, " ");
-			}
-			else{
-				strcat(temp, token[i]);
-			}
-		}
-		//strcat(temp, "\n");
-		//inst_mem[k++] = parser(temp);
-		//temp = malloc(sizeof(char *) * MAX);
+	//strcat(temp, "\n");
+	//inst_mem[k++] = parser(temp);
+	//temp = malloc(sizeof(char *) * MAX);
 
 	//}
 	// fclose(fptr);
@@ -280,6 +273,15 @@ char *progScanner(char *input){
 }
 
 struct Instruction parser(char *string){
+
+	//check missing register symbols
+	int signCounter = 0;
+	int i;
+	for(i = 0; i < strlen(string); i++){
+		if(string[i] == '$'){
+			signCounter++;
+		}
+	}
 
 	char regDelimiter[] = "\r $";
 	char* str = malloc(sizeof(char*) * MAX);
@@ -292,6 +294,12 @@ struct Instruction parser(char *string){
 
 
 	if(testInst.opcode == 5 || testInst.opcode == 6){
+
+		if(signCounter != 2){
+			printf("Missing register signs");
+			exit(0);
+		}
+
 		testInst.rd = regNumConverter(strtok(NULL, regDelimiter));
 		testInst.imm = atoi(strtok(NULL, regDelimiter));
 
@@ -310,12 +318,21 @@ struct Instruction parser(char *string){
 	}
 
 	else if(testInst.opcode == 1){
+		if(signCounter != 2){
+			printf("Missing register signs");
+			exit(0);
+		}
 		testInst.rs = regNumConverter(strtok(NULL, regDelimiter));
 		testInst.rt = regNumConverter(strtok(NULL, regDelimiter));
-		testInst.imm = regNumConverter(strtok(NULL, regDelimiter));
+		testInst.imm = atoi(strtok(NULL, regDelimiter));
 	}
 
 	else{
+		if(signCounter != 3){
+			printf("Missing register signs");
+			exit(0);
+		}
+
 		testInst.rd = regNumConverter(strtok(NULL, regDelimiter));
 		testInst.rs = regNumConverter(strtok(NULL, regDelimiter));
 		testInst.rt = regNumConverter(strtok(NULL, regDelimiter));
@@ -326,15 +343,11 @@ struct Instruction parser(char *string){
 		printf("rs: %d\n", testInst.rs);
 		printf("rt: %d\n", testInst.rt);
 	}
-
 	return testInst;
 }
 
 int opcodeConverter(char* instOpcode){
 	int val;
-	printf("q%sq\n", instOpcode);
-
-
 	if(strcmp(instOpcode, "add") == 0){
 		val = 0;
 	}
@@ -381,6 +394,7 @@ int regNumConverter(char* regName){
 		val = 4;
 	}
 	else if(strcmp(regName, "a1") == 0 || strcmp(regName, "5") == 0){
+		printf("marker4\n");
 		val = 5;
 	}
 	else if(strcmp(regName, "a2") == 0 || strcmp(regName, "6") == 0){
@@ -473,8 +487,8 @@ void IF(){
 		if (!ifLatch.ready){
 			ifLatch.instruction = instructionMemory[pgm_c];
 			ifLatch.ready = true;
-			}
 		}
+	}
 	else {
 		if (!ifLatch.ready) {  //sends info to ID
 
@@ -483,208 +497,220 @@ void IF(){
 			ifLatch.rt = 0;
 			ifLatch.ready = true;	//can move on
 			pgm_c++;
-			}
-			start = isBEQ;
 		}
+		start = !isBEQ;
 	}
+	printf("ifLatch\n");
+	testprint(ifLatch);
+}
 
 void id(){
 	int hazard = 0;  ///0 = no hazard // 1 = there is a hazard
 	int wronginstruct = 0; // 0 = nothing wrong
 
-	if (ifLatch.opcode == haltSimulation && !idLatch.ready){
+	if (ifLatch.instruction.opcode == haltSimulation && !idLatch.ready){
 		ifLatch.ready = false;
 		idLatch.instruction = ifLatch.instruction;
 		idLatch.ready = true;
-		}
+	}
 	else {
-		if (idLatch.ready){
+		if (ifLatch.ready){
 			if (ifLatch.instruction.opcode == beq) {
 				isBEQ = true;
-				}
-				////add, sub, mult instructions in ID_EX_LATCH/////
+			}
+			////add, sub, mult instructions in ID_EX_LATCH/////
 			if((idLatch.ready) && (idLatch.instruction.opcode == add || idLatch.instruction.opcode == sub || idLatch.instruction.opcode == mult)){
 				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == beq){
 					if(ifLatch.instruction.rs == idLatch.instruction.rd || ifLatch.instruction.rt == idLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
-						}
 					}
+				}
 				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
-					if(ifLatch.instruction.rs == idLatch.instruction.rd){
+					if(ifLatch.instruction.rs == idLatch.instruction.rt){
 						hazard = 1;
-						}
 					}
+				}
 			}
-				///addi lw in ID_EX_LATCH////
+			///addi lw in ID_EX_LATCH////
 			if((idLatch.ready) && (idLatch.instruction.opcode == addi || idLatch.instruction.opcode == lw)){
 				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == beq){
-					if(ifLatch.instruction.rs == idLatch.instruction.rd || ifLatch.instruction.rt == idLatch.instruction.rd){ ///CHECK IF THE REGISTERS
+					if(ifLatch.instruction.rs == idLatch.instruction.rt || ifLatch.instruction.rt == idLatch.instruction.rt){ ///CHECK IF THE REGISTERS
 						hazard = 1;
-						}
 					}
+				}
 				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
-					if(ifLatch.instruction.rs == idLatch.instruction.rd){
+					if(ifLatch.instruction.rs == idLatch.instruction.rt){
 						hazard = 1;
-						}
 					}
+				}
 			}
-				////add, sub, mult instructions in EX_MEM_LATCH/////
-			if((memLatch.ready) && (exLatch.instruction.opcode == add || exLatch.instruction.opcode == sub || exLatch.instruction.opcode == mult)){
+			////add, sub, mult instructions in EX_MEM_LATCH/////
+			if((exLatch.ready) && (exLatch.instruction.opcode == add || exLatch.instruction.opcode == sub || exLatch.instruction.opcode == mult)){
 				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == beq){
 					if(ifLatch.instruction.rs == exLatch.instruction.rd || ifLatch.instruction.rt == exLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
-						}
 					}
+				}
 				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
-					if(ifLatch.instruction.rs == exLatch.instruction.rd){
+					if(ifLatch.instruction.rs == exLatch.instruction.rt){
 						hazard = 1;
-						}
 					}
+				}
 			}
 
 
-				//////addi lw in EX_MEM_LATCH/////
-			if((memLatch.ready) && (exLatch.instruction.opcode == addi || exLatch.instruction.opcode == lw)){
+			//////addi lw in EX_MEM_LATCH/////
+			if((exLatch.ready) && (exLatch.instruction.opcode == addi || idLatch.instruction.opcode == lw)){
 				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == beq){
-					if(ifLatch.instruction.rs == idLatch.instruction.rd || ifLatch.instruction.rt == idLatch.instruction.rd){ ///CHECK IF THE REGISTERS
+					if(ifLatch.instruction.rs == exLatch.instruction.rt || ifLatch.instruction.rt == exLatch.instruction.rt){ ///CHECK IF THE REGISTERS
 						hazard = 1;
-						}
 					}
+				}
 				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
-					if(ifLatch.instruction.rs == exLatch.instruction.rd){
+					if(ifLatch.instruction.rs == exLatch.instruction.rt){
 						hazard = 1;
-						}
 					}
+				}
 			}
 			////add, sub, mult instructions in MEM_WB_LATCH/////
 			if((memLatch.ready) && (memLatch.instruction.opcode == add || memLatch.instruction.opcode == sub || memLatch.instruction.opcode == mult)){
 				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == beq){
 					if(ifLatch.instruction.rs == memLatch.instruction.rd || ifLatch.instruction.rt == memLatch.instruction.rd){ ///CHECK IF THE REGISTERS
 						hazard = 1;
-						}
-					}
-				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
-					if(ifLatch.instruction.rs == memLatch.instruction.rd){
-						hazard = 1;
-						}
-					}
-			}
-
-
-				//////addi lw in MEM_WB_LATCH/////
-			if((memLatch.ready) && (memLatch.instruction.opcode == addi || memLatch.instruction.opcode == lw)){
-				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == beq){
-					if(ifLatch.instruction.rs == memLatch.instruction.rd || ifLatch.instruction.rt == memLatch.instruction.rd){ ///CHECK IF THE REGISTERS
-						hazard = 1;
-						}
-					}
-				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
-					if(ifLatch.instruction.rs == memLatch.instruction.rd){
-						hazard = 1;
-						}
-					}
-			}
-			if(hazard == 0 && !idLatch.ready){
-				switch(idLatch.instruction.opcode){     /////sends info to mips reg
-					case add :
-						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
-						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
-						break;
-					case addi :
-						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
-						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
-						break;
-					case sub :
-						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
-						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
-						break;
-					case mult :
-						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
-						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
-						break;
-					case beq :
-						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
-						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
-						break;
-					case sw :
-						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
-						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
-						break;
-					case lw :
-						idLatch.instruction.rs = mips_reg[ifLatch.instruction.rs];
-						idLatch.instruction.rt = mips_reg[ifLatch.instruction.rt];
-						break;
-					default :
-						wronginstruct = 1;
-						break;
 					}
 				}
+				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
+					if(ifLatch.instruction.rs == memLatch.instruction.rt){
+						hazard = 1;
+					}
+				}
+			}
+
+
+			//////addi lw in MEM_WB_LATCH/////
+			if((memLatch.ready) && (memLatch.instruction.opcode == addi || memLatch.instruction.opcode == lw)){
+				if (ifLatch.instruction.opcode == add || ifLatch.instruction.opcode == sub || ifLatch.instruction.opcode == mult || ifLatch.instruction.opcode == sw || ifLatch.instruction.opcode == beq){
+					if(ifLatch.instruction.rs == memLatch.instruction.rt || ifLatch.instruction.rt == memLatch.instruction.rt){ ///CHECK IF THE REGISTERS
+						hazard = 1;
+					}
+				}
+				else if(ifLatch.instruction.opcode == addi || ifLatch.instruction.opcode == lw){
+					if(ifLatch.instruction.rs == memLatch.instruction.rt){
+						hazard = 1;
+					}
+				}
+			}
+			if(hazard == 0 && !idLatch.ready){
+				// switch(idLatch.instruction.opcode){     /////sends info to mips reg
+				// 	case add :
+				// 	idLatch.rs = mips_reg[ifLatch.instruction.rs];
+				// 	idLatch.rt = mips_reg[ifLatch.instruction.rt];
+				// 	break;
+				// 	case addi :
+					idLatch.rs = mips_reg[ifLatch.instruction.rs];
+					idLatch.rt = mips_reg[ifLatch.instruction.rt];
+					idLatch.immediate = ifLatch.instruction.imm;
+					idLatch.opcode = ifLatch.instruction.opcode;
+				// 	break;
+				// 	case sub :
+				// 	idLatch.rs = mips_reg[ifLatch.instruction.rs];
+				// 	idLatch.rt = mips_reg[ifLatch.instruction.rt];
+				// 	break;
+				// 	case mult :
+				// 	idLatch.rs = mips_reg[ifLatch.instruction.rs];
+				// 	idLatch.rt = mips_reg[ifLatch.instruction.rt];
+				// 	break;
+				// 	case beq :
+				// 	idLatch.rs = mips_reg[ifLatch.instruction.rs];
+				// 	idLatch.rt = mips_reg[ifLatch.instruction.rt];
+				// 	idLatch.immediate = ifLatch.instruction.imm;
+				// 	break;
+				// 	case sw :
+				// 	idLatch.rs = mips_reg[ifLatch.instruction.rs];
+				// 	idLatch.rt = mips_reg[ifLatch.instruction.rt];
+				// 	idLatch.immediate = ifLatch.instruction.imm;
+				// 	break;
+				// 	case lw :
+				// 	idLatch.rs = mips_reg[ifLatch.instruction.rs];
+				// 	idLatch.rt = mips_reg[ifLatch.instruction.rt];
+				// 	idLatch.immediate = ifLatch.instruction.imm;
+				// 	break;
+				// 	default :
+				// 	wronginstruct = 1;
+				// 	break;
+				// }
+			}
 			assert(wronginstruct == 0);  ///error if theres a wrong instruction
 			if(hazard == 0 && !idLatch.ready){
 
 				idLatch.instruction = ifLatch.instruction;   /////sends info
+				idLatch.opcode = idLatch.instruction.opcode;
 				idLatch.ready = true;
 				ifLatch.ready = false;
-						}
-					}
-				}
-
+			}
+		}
 	}
+	printf("idLatch\n");
+	testprint(idLatch);
+
+}
 
 
 
 void ex(){
-  int numCycle;
-	if (ifLatch.opcode == haltSimulation && !idLatch.ready){
+	int numCycle;
+	if (idLatch.opcode == haltSimulation && !idLatch.ready){
 		idLatch.ready = false;
 		exLatch.instruction = ifLatch.instruction;
 		exLatch.ready = true;
-		}
+	}
 	else {
-  if(idLatch.ready){           //has id given out a result?
-    if(idLatch.opcode == mult) { numCycle = m; }
-    else { numCycle = n; }
-    if(exIntCycle < numCycle) { exIntCycle++; }
-    if(exIntCycle == numCycle && !exLatch.ready){
-      switch (idLatch.opcode){
-        case mult:
-          exLatch.output = idLatch.rs*idLatch.rt;
-          break;
-        case add:
-          exLatch.output = idLatch.rs + idLatch.rt;
-          break;
-        case sub:
-          exLatch.output = idLatch.rs - idLatch.rt;
-          break;
-        case addi:
-          exLatch.output = idLatch.rs + idLatch.immediate;
-          break;
-        case lw:
-          exLatch.output = idLatch.rs + (idLatch.immediate/4);
-          break;
-        case sw:
-          exLatch.output = idLatch.rs + (idLatch.immediate/4);
-          break;
-        case beq:
-          if(idLatch.rs == idLatch.rt)
-            pgm_c += idLatch.immediate;
-          assert((pgm_c>=0) && (pgm_c <512));
-          isBEQ = false;
-          exLatch.output = 0;
-          break;
-      }
+		if(idLatch.ready){           //has id given out a result?
+			if(idLatch.opcode == mult) { numCycle = m; }
+			else { numCycle = n; }
+			if(exIntCycle < numCycle) { exIntCycle++; }
+			if(exIntCycle == numCycle && !exLatch.ready){
+				switch (idLatch.opcode){
+					case mult:
+					exLatch.output = idLatch.rs*idLatch.rt;
+					break;
+					case add:
+					exLatch.output = idLatch.rs + idLatch.rt;
+					break;
+					case sub:
+					exLatch.output = idLatch.rs - idLatch.rt;
+					break;
+					case addi:
+					exLatch.output = idLatch.rs + idLatch.immediate;
+					break;
+					case lw:
+					exLatch.output = idLatch.rs + (idLatch.immediate/4);
+					break;
+					case sw:
+					exLatch.output = idLatch.rs + (idLatch.immediate/4);
+					break;
+					case beq:
+					if(idLatch.rs == idLatch.rt){
+					pgm_c += idLatch.immediate;
+					assert((pgm_c>=0) && (pgm_c <512));
+					isBEQ = false;
+					exLatch.output = 0;
+				}
+					break;
+				}
 
-        exLatch.opcode = idLatch.opcode;
-        exLatch.rs = idLatch.rs;
-        exLatch.rt = idLatch.rt;
-        exLatch.instruction = idLatch.instruction;
-        exLatch.immediate = idLatch.immediate;
-        exLatch.ready = true;
-        idLatch.ready = false;
-        exIntCycle = 0;
-      }
+				exLatch.rs = idLatch.rs;
+				exLatch.rt = idLatch.rt;
+				exLatch.instruction = idLatch.instruction;
+				exLatch.immediate = idLatch.immediate;
+				exLatch.ready = true;
+				idLatch.ready = false;
+				exIntCycle = 0;
+			}
 		}
-  }
+	}
+	printf("exLatch\n");
+	testprint(exLatch);
 }
 
 void mem(){
@@ -692,65 +718,82 @@ void mem(){
 		exLatch.ready = false;
 		idLatch.instruction = ifLatch.instruction;
 		memLatch.ready = true;
-		}
+	}
 	else {
-  if(exLatch.ready){
-    if((exLatch.instruction.opcode == lw || exLatch.instruction.opcode == sw) && !memLatch.ready){
-      if (memIntCycle < c) memIntCycle++;
-      if(memIntCycle == c && !memLatch.ready){
-        assert(exLatch.immediate % 4 == 0);
-        if(exLatch.instruction.opcode == sw){
-          dataMemory[exLatch.output] = mips_reg[exLatch.instruction.rt];
-          memLatch.output=0;
-        }
-        if(exLatch.instruction.opcode == lw){
+		if(exLatch.ready){
+			if((exLatch.instruction.opcode == lw || exLatch.instruction.opcode == sw) && !memLatch.ready){
+				if (memIntCycle < c) memIntCycle++;
+				if(memIntCycle == c && !memLatch.ready){
+					assert(exLatch.immediate % 4 == 0);
+					if(exLatch.instruction.opcode == sw){
+						dataMemory[exLatch.output] = mips_reg[exLatch.instruction.rt];
+						memLatch.output=0;
+					}
+					if(exLatch.instruction.opcode == lw){
 
-          memLatch.output = dataMemory[exLatch.output];
-        }
-      }
-    }
-    else if(!memLatch.ready){
-      if (memIntCycle < c)
-        memIntCycle++;
-      if(memIntCycle == c)
-        memLatch.output = exLatch.output;
-    }
-    memLatch.opcode = exLatch.opcode;
-    memLatch.rs = exLatch.rs;
-    memLatch.rt = exLatch.rt;
-    memLatch.instruction = exLatch.instruction;
-    memLatch.immediate = exLatch.immediate;
-    memIntCycle = 0;
-    exLatch.ready = false;
-    memLatch.ready = true;
+						memLatch.output = dataMemory[exLatch.output];
+					}
+				}
+			}
+			else if(!memLatch.ready){
+				if (memIntCycle < c)
+				memIntCycle++;
+				if(memIntCycle == c)
+				memLatch.output = exLatch.output;
+			}
+			memLatch.opcode = exLatch.opcode;
+			memLatch.rs = exLatch.rs;
+			memLatch.rt = exLatch.rt;
+			memLatch.instruction = exLatch.instruction;
+			memLatch.immediate = exLatch.immediate;
+			memIntCycle = 0;
+			exLatch.ready = false;
+			memLatch.ready = true;
 
-  }
-}
+		}
+	}
+	printf("memLatch\n");
+	testprint(memLatch);
 }
 
 void wb(){
 	if (memLatch.opcode == haltSimulation && !idLatch.ready){
 		memLatch.ready = false;
-		}
+	}
 	else {
-  if(memLatch.ready){
-    if(memLatch.instruction.opcode == add || memLatch.instruction.opcode == sub  || memLatch.instruction.opcode == mult){
-      cycle.wb++;
-      mips_reg[memLatch.instruction.rd] = memLatch.output;
-    }
-    else if(memLatch.instruction.opcode == lw || memLatch.instruction.opcode == addi){
-      cycle.wb++;
-      mips_reg[memLatch.instruction.rt] = memLatch.output;
-    }
-    memLatch.ready = false;
-  }
-}
+		if(memLatch.ready){
+			if(memLatch.instruction.opcode == add || memLatch.instruction.opcode == sub  || memLatch.instruction.opcode == mult){
+				cycle.wb++;
+				mips_reg[memLatch.instruction.rd] = memLatch.output;
+			}
+			else if(memLatch.instruction.opcode == lw || memLatch.instruction.opcode == addi){
+				cycle.wb++;
+				mips_reg[memLatch.instruction.rt] = memLatch.output;
+			}
+			memLatch.ready = false;
+		}
+	}
 }
 
 void testprint(struct Latch latch){
-  printf("opcode = %d\n",latch.instruction.opcode);
-  printf("rs = %d\n",mips_reg[latch.instruction.rs]);
-  printf("rt = %d\n",mips_reg[latch.instruction.rt]);
-  printf("output = %d\n",latch.output);
-  printf("ready = %d\n\n", latch.ready);
+	printf("opcode = %d\n",latch.instruction.opcode);
+	printf("rs reg = %d\n", latch.instruction.rs);
+	printf("rt reg = %d\n", latch.instruction.rt);
+	printf("rd reg = %d\n", latch.instruction.rd);
+	printf("instruction immediate = %d\n", latch.instruction.imm);
+	printf("immediate Latch = %d\n", latch.immediate);
+	printf("rs = %d\n",mips_reg[latch.instruction.rs]);
+	printf("rt = %d\n",mips_reg[latch.instruction.rt]);
+	printf("output = %d\n",latch.output);
+	printf("ready = %d\n\n", latch.ready);
+}
+
+char *my_strcat(char *dest, const char *src){
+	size_t i,j;
+	for (i = 0; dest[i] != '\0'; i++)
+	;
+	for (j = 0; src[j] != '\0'; j++)
+	dest[i+j] = src[j];
+	dest[i+j] = '\0';
+	return dest;
 }
